@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meow Chatbot AI</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&family=Poppins:wght@400;500&display=swap');
+
+        body {
+            margin: 0;
+            font-family: 'Roboto', sans-serif;
+            background-color: #f0f4f8;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 50px); /* Adjust for footer height */
+            max-width: 1200px;
+            margin: 0 auto;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 20px;
+            overflow: hidden;
+        }
+
+        .chat {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: #ffffff;
+            border-radius: 20px;
+        }
+
+        .chat-header {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            background: linear-gradient(to bottom, #42a5f5, #1e88e5);
+            color: #fff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 20px 20px 0 0;
+            position: relative;
+        }
+
+        .chat-header img {
+            width: 50px;
+            border-radius: 50%;
+            margin-right: 15px;
+        }
+
+        .chat-header h3 {
+            margin: 0;
+            font-size: 20px;
+            font-family: 'Poppins', sans-serif;
+            flex-grow: 1;
+        }
+
+        .menu {
+            position: absolute;
+            right: 15px;
+            top: 15px;
+            cursor: pointer;
+            font-size: 24px;
+            color: #fff;
+        }
+
+        .menu-dropdown {
+            display: none;
+            position: absolute;
+            right: 15px;
+            top: 50px;
+            background: #ffffff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 5px;
+            z-index: 10;
+        }
+
+        .menu-dropdown a {
+            display: block;
+            padding: 10px 15px;
+            color: #333;
+            text-decoration: none;
+            font-family: 'Poppins', sans-serif;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .menu-dropdown a:last-child {
+            border-bottom: none;
+        }
+
+        .menu-dropdown a:hover {
+            background-color: #e1f5fe;
+        }
+
+        .chat-messages {
+            flex-grow: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background-color: #f0f4f8;
+        }
+
+        .message-container {
+            display: flex;
+            align-items: flex-end;
+            margin: 10px 0;
+        }
+
+        .message-container.received {
+            flex-direction: row;
+            justify-content: flex-start;
+        }
+
+        .message-container.sent {
+            flex-direction: row;
+            justify-content: flex-end;
+        }
+
+        .message-container img.profile-pic {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin: 0 10px;
+            flex-shrink: 0;
+        }
+
+        .message {
+            padding: 10px 15px;
+            border-radius: 20px;
+            max-width: 70%;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: popup 0.5s forwards;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .message.sent {
+            background-color: #c8e6c9;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .message.received {
+            background-color: #ffffff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .chat-input {
+            display: flex;
+            padding: 15px;
+            background-color: #ffffff;
+            box-shadow: 0 -4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 0 0 20px 20px;
+        }
+
+        .chat-input input {
+            flex-grow: 1;
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            outline: none;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .chat-input input.disabled {
+            background-color: #e0e0e0;
+            cursor: not-allowed;
+        }
+
+        .chat-input button {
+            padding: 10px 20px;
+            background-color: #42a5f5;
+            color: #fff;
+            border: none;
+            border-radius: 20px;
+            margin-left: 10px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .chat-input button:hover {
+            background-color: #1e88e5;
+        }
+
+        .disclaimer {
+            padding: 10px 20px;
+            background-color: #ffebee;
+            color: #d32f2f;
+            font-size: 12px;
+            text-align: center;
+            border-top: 1px solid #e0e0e0;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .contact-us-popup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #ffffff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            width: 300px;
+            padding: 20px;
+            z-index: 20;
+            opacity: 0;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        .contact-us-popup.active {
+            display: block;
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        .contact-us-popup .close {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 20px;
+            cursor: pointer;
+            color: #333;
+        }
+
+        .contact-us-popup h2 {
+            margin: 0;
+            font-size: 18px;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .social-icons {
+            margin-top: 10px;
+        }
+
+        .social-icons a {
+            margin: 0 10px;
+            display: inline-block;
+        }
+
+        .social-icons img {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            transition: transform 0.2s;
+        }
+
+        .social-icons img:hover {
+            transform: scale(1.1);
+        }
+
+        .footer {
+            height: 50px;
+            background: #e3f2fd;
+            text-align: center;
+            padding: 15px;
+            border-top: 1px solid #e0e0e0;
+            font-family: 'Poppins', sans-serif;
+            color: #333;
+        }
+
+        @keyframes popup {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Responsive Styles */
+        @media (max-width: 768px) {
+            .chat-header h3 {
+                font-size: 18px;
+            }
+
+            .menu {
+                font-size: 20px;
+                right: 10px;
+                top: 10px;
+            }
+
+            .chat-input input {
+                padding: 8px 12px;
+            }
+
+            .chat-input button {
+                padding: 8px 16px;
+                font-size: 14px;
+            }
+
+            .contact-us-popup {
+                width: 260px;
+            }
+
+            .social-icons img {
+                width: 25px;
+                height: 25px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                height: auto;
+                margin: 0 10px;
+            }
+
+            .chat-header {
+                padding: 10px;
+            }
+
+            .chat-header img {
+                width: 40px;
+                margin-right: 10px;
+            }
+
+            .chat-header h3 {
+                font-size: 16px;
+            }
+
+            .menu {
+                font-size: 18px;
+            }
+
+            .chat-input input {
+                padding: 6px 10px;
+                font-size: 12px;
+            }
+
+            .chat-input button {
+                padding: 6px 10px;
+                font-size: 12px;
+            }
+
+            .contact-us-popup {
+                width: 220px;
+            }
+
+            .social-icons img {
+                width: 20px;
+                height: 20px;
+            }
+
+            .footer {
+                font-size: 12px;
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="chat">
+            <div class="chat-header">
+                <img src="images/vecteezy_illustration-of-cute-cat-drawing-in-gray-color-wpap-pop_17053195.png" alt="Meow AI">
+                <h3>Meow AI</h3>
+                <div class="menu" onclick="toggleDropdown()">&#x22EE;</div>
+                <div class="menu-dropdown" id="menuDropdown">
+                    <a href="#" onclick="toggleContactUs()">Contact Us</a>
+                </div>
+            </div>
+            <div class="chat-messages" id="chatMessages">
+                <div class="message-container received">
+                    <img src="images/vecteezy_illustration-of-cute-cat-drawing-in-gray-color-wpap-pop_17053195.png" class="profile-pic" alt="Receiver">
+                    <div class="message received">
+                        Hi there! How can I assist you today?
+                    </div>
+                </div>
+                
+                </div>
+            </div>
+            <div class="chat-input">
+                <input type="text" id="userInput" placeholder="Type your message..." onkeypress="checkEnter(event)">
+                <button onclick="sendMessage()">Send</button>
+            </div>
+        </div>
+    </div>
+    <div class="disclaimer">
+        This chatbot is a demo and it might be incorrect sometimes. While searching, use correct spelling for accurate results.
+    </div>
+    <div class="footer">
+        <p>Meow Chatbot AI by Gautam Kumar</p>
+    </div>
+
+    <!-- Audio Elements -->
+    <audio id="sentSound" src="sound/notification.mp3"></audio>
+    <audio id="receivedSound" src="sound/notification.mp3"></audio>
+
+    <!-- Contact Us Popup -->
+    <div class="contact-us-popup" id="contactUsPopup">
+        <span class="close" onclick="toggleContactUs()">&times;</span>
+        <h2>Contact Us</h2>
+        <div class="social-icons">
+            <a href="mailto:gautamkrmd3525@gmail.com" target="_blank">
+                <img src="images/gmail.png" alt="Gmail">
+            </a>
+            <a href="https://www.instagram.com/kmrr.gautam" target="_blank">
+                <img src="images/instagram.png" alt="Instagram">
+            </a>
+            <a href="https://www.linkedin.com/in/kmrr-gautam" target="_blank">
+                <img src="images/linkedin.png" alt="LinkedIn">
+            </a>
+        </div>
+    </div>
+
+    <script>
+        function toggleDropdown() {
+            const menuDropdown = document.getElementById('menuDropdown');
+            if (menuDropdown) {
+                menuDropdown.style.display = menuDropdown.style.display === 'block' ? 'none' : 'block';
+            }
+        }
+
+        function toggleContactUs() {
+            const popup = document.getElementById('contactUsPopup');
+            popup.classList.toggle('active');
+            const isActive = popup.classList.contains('active');
+            document.getElementById('userInput').disabled = isActive;
+            document.querySelector('button').disabled = isActive;
+            if (isActive) {
+                document.getElementById('userInput').classList.add('disabled');
+            } else {
+                document.getElementById('userInput').classList.remove('disabled');
+            }
+        }
+
+        function displayMessage(text, type) {
+            const chatMessages = document.getElementById('chatMessages');
+            const messageContainer = document.createElement('div');
+            messageContainer.classList.add('message-container');
+            messageContainer.classList.add(type);
+
+            const message = document.createElement('div');
+            message.classList.add('message', type);
+
+            if (type === 'sent') {
+                const profilePic = document.createElement('img');
+                profilePic.classList.add('profile-pic');
+                profilePic.src = 'images/icons8-user-100.png';
+                messageContainer.appendChild(message);
+                messageContainer.appendChild(profilePic);
+            } else {
+                const profilePic = document.createElement('img');
+                profilePic.classList.add('profile-pic');
+                profilePic.src = 'images/vecteezy_illustration-of-cute-cat-drawing-in-gray-color-wpap-pop_17053195.png';
+                messageContainer.appendChild(profilePic);
+                messageContainer.appendChild(message);
+            }
+
+            message.textContent = text;
+            chatMessages.appendChild(messageContainer);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function evaluateExpression(expression) {
+            try {
+                // Evaluate mathematical expressions
+                const result = eval(expression);
+                if (!isNaN(result)) {
+                    return `The result is ${result}`;
+                } else {
+                    return 'Invalid expression. Please try again.';
+                }
+            } catch (e) {
+                return 'Error in calculation. Please try again.';
+            }
+        }
+
+        function sendMessage() {
+            const userInput = document.getElementById('userInput').value.trim();
+            if (!userInput) return;
+
+            displayMessage(userInput, 'sent');
+            document.getElementById('sentSound').play();
+
+            const defaultReplies = {
+                'hi': 'Hello! How can I help you?',
+                'hello': 'Hi there! How can I assist you?',
+                'thank you': "You're welcome! Is there anything else you need?",
+                'bye': 'Goodbye! Have a great day!',
+                'by': 'Goodbye! Have a great day!'
+            };
+
+            const lowerCaseInput = userInput.toLowerCase();
+            let botReply = defaultReplies[lowerCaseInput] || 'Sorry, I did not understand that. Can you please rephrase?';
+
+            if (!defaultReplies[lowerCaseInput]) {
+                if (['what', 'when', 'where', 'who', 'whom', 'which', 'whose', 'why', 'how'].some(word => lowerCaseInput.startsWith(word))) {
+                    window.open(`https://www.google.com/search?q=${encodeURIComponent(userInput)}`, '_blank');
+                    botReply = `Searching for "${userInput}"...`;
+                } else if (lowerCaseInput.startsWith('play ')) {
+                    const query = lowerCaseInput.replace('play ', '');
+                    window.open(`https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`, '_blank');
+                    botReply = `Searching for "${query}"...`;
+                } else if (lowerCaseInput.startsWith('search on google ')) {
+                    const query = lowerCaseInput.replace('search on google ', '');
+                    window.open(`https://www.google.com/search?q=${encodeURIComponent(query)}`, '_blank');
+                    botReply = `Searching for "${query}"...`;
+                } else if (lowerCaseInput.startsWith('search on youtube ')) {
+                    const query = lowerCaseInput.replace('search on youtube ', '');
+                    window.open(`https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`, '_blank');
+                    botReply = `Searching for "${query}"...`;
+                } else if (/^\d+[\+\-\*\/]\d+/.test(lowerCaseInput)) {
+                    // Handle basic calculations
+                    botReply = evaluateExpression(lowerCaseInput);
+                } else {
+                    window.open(`https://en.wikipedia.org/wiki/${encodeURIComponent(userInput)}`, '_blank');
+                    botReply = `Searching for "${userInput}"...`;
+                }
+            }
+
+            setTimeout(() => {
+                displayMessage(botReply, 'received');
+                document.getElementById('receivedSound').play();
+            }, 500);
+
+            document.getElementById('userInput').value = '';
+        }
+
+        function checkEnter(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault(); // Prevent form submission if inside a form
+                sendMessage();
+            }
+        }
+    </script>
+</body>
+</html>
